@@ -1,24 +1,0 @@
-
-Before elaborating the details of simulation, please set this folder "reproducibility_materials" as your working directory. Under the working directory  ("reproducibility_materials"), there should be two sub-directories: "simulations" and "real_data_analysis". 
-
-Under the directory "reproducibility_materials/simulations", there should be two sub-directories: "main", "appendix"Enter the subdirectory "simulations/main":
-
-Running the R script "case1_figure3_results.R" will produce "case1_stationary.RData", "case1_VAR_stationary.RData", "case1_predictive.RData", "case1_VAR_predictive.RData".
-Running the R script case1_figure3_plot.R will visualize the above results and produce Figure 3 in our main text. 
- 
-Running the R script "case2_figure4_results.R" will produce "case2_stationary.RData", "case2_VAR_stationary.RData", "case2_predictive.RData", "case2_VAR_predictive.RData".
-Running the R script case2_figure4_plot.R will visualize the above results of case2 and produce Figure 4 in our main text. 
-
-Running the R script "case3_figure5_results.R" will produce "case3_stationary.RData", "case3_VAR_stationary.RData", "case3_predictive.RData", "case3_VAR_predictive.RData".
-Running the R script case3_figure5_plot.R will visualize the above results of case3 and produce Figure 5 in our main text. 
-
-
-
-Enter the subdirectory "simulations/appendix":
-
-Running the R script "appendix_case1_figure3.R" will produce Figure 3 in our Appendix; Figure 4 in the Appendix can be produced by adjusting the T, h, and plot settings in "appendix_case1_figure3.R".
-
-Running the R script "appendix_case2_figure6.R" will produce Figure 6 in our Appendix; Figure 7 in the Appendix can be produced by adjusting the T, h, and plot settings in "appendix_case2_figure6.R".
-
-Running the R script "appendix_case3_figure9.R" will produce Figure 9 in our Appendix; Figure 10 in the Appendix can be produced by adjusting the T, h, and plot settings in "appendix_case3_figure9.R".
-
