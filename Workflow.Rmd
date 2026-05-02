@@ -1,0 +1,122 @@
+---
+title: Nonparametric Vector Quantile Autoregression
+
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+We propose a fully nonparametric vector quantile autoregression (VQAR) framework based on center-outward quantiles from optimal transport. Our method constructs a predictive transport map pushing a spherical reference distribution forward to the conditional distribution of future observation. It yields closed, nested, and connected quantile regions with exact conditional coverage that fully characterize the predictive distribution without relying on parametric assumptions or specifying innovation densities. 
+The proposed method addresses key limitations of classical vector autoregressive models--point prediction and linear transitions.
+
+
+
+
+
+
+The folder "reproducibility_materials" contains:
+1. The R codes to conduct simulations via implementing nonparametric VQAR, which replicate the simulation results.
+2. The R codes for real data analysis.
+3. Pre-processed real dataset that is ready to use. 
+
+
+## R packages required
+The R scripts will employ these R packages: "ellipse", "MASS", "Matrix", "mgcv", "transport", "plotrix", "sn", "doParallel"
+
+
+## Computational cost
+Parallel computation is implemented in these R scripts. Each R script invokes 8-12 CPUs. 
+Computational cost: 
+The three simulation cases range from  to 20 hours and range from 8 to 18 GBs (per CPU). 
+The real data analysis (four groups) range from 3 to 5 hours and ranges from 7 to 9 GBs (per CPU).
+
+
+
+**Note**: Please set folder "reproducibility_materials" as the working directory to run the scripts. Under the working directory  ("reproducibility_materials"), there should be two sub-directories: "simulations" and "real_data_analysis". 
+
+
+
+## Data
+This study analyzes the dataset “A dataset of EEG recordings from Alzheimer’s disease, Frontotemporal Dementia, and Healthy subjects”, which is publicly accessible at https://openneuro.org/datasets/ds004504/versions/1.0.8. 
+Researchers can apply for the dataset following their standard procedure. 
+For readers' convenience, we pre-processed the dataset and make it ready to use. The preprocessing steps are not related to our method and take a long time. Therefore, we prepared the dataset that is ready to use. It is stored as "reproducibility_materials/real_data_analysis/preprocessed.RData".
+
+
+## Simulation
+Enter the subdirectory "./simulations/main":
+
+Running the R script "case1_figure3_results.R" will produce "case1_stationary.RData", "case1_VAR_stationary.RData", "case1_predictive.RData", "case1_VAR_predictive.RData".
+Running the R script case1_figure3_plot.R will visualize the above results and produce Figure 3 in our main text. 
+ 
+Running the R script "case2_figure4_results.R" will produce "case2_stationary.RData", "case2_VAR_stationary.RData", "case2_predictive.RData", "case2_VAR_predictive.RData".
+Running the R script case2_figure4_plot.R will visualize the above results of case2 and produce Figure 4 in our main text. 
+
+Running the R script "case3_figure5_results.R" will produce "case3_stationary.RData", "case3_VAR_stationary.RData", "case3_predictive.RData", "case3_VAR_predictive.RData".
+Running the R script case3_figure5_plot.R will visualize the above results of case3 and produce Figure 5 in our main text. 
+
+```{r, eval=F}
+system("Rscript ./simulations/main/case1_figure3_results.R")
+system("Rscript ./simulations/main/case1_figure3_plot.R")
+system("Rscript ./simulations/main/case2_figure4_results.R")
+system("Rscript ./simulations/main/case2_figure4_plot.R")
+system("Rscript ./simulations/main/case3_figure5_results.R")
+system("Rscript ./simulations/main/case3_figure5_plot.R")
+```
+
+
+Enter the subdirectory "./simulations/appendix":
+
+Running the R script "appendix_case1_figure3.R" will produce Figure 3 in our Appendix. 
+
+Running the R script "appendix_case2_figure6.R" will produce Figure 6 in our Appendix.
+
+Running the R script "appendix_case3_figure9.R" will produce Figure 9 in our Appendix.
+
+```{r, eval=F}
+system("Rscript ./simulations/appendix/appendix_case1_figure3.R")
+system("Rscript ./simulations/appendix/appendix_case2_figure6.R")
+system("Rscript ./simulations/appendix/appendix_case3_figure9.R")
+```
+
+
+
+## Real data analysis
+Enter the subdirectory "reproducibility_materials/real_data_analysis":
+1. preprocess the dataset: 
+   (1): transform .set format to .npy format. The original data is in the form of .set file, and we will transform those into python readable files for subsequent analysis.
+   (2): cleaning the data by removing the missing entries and obtain the channel names (such as F1, F2, O1, O2).
+   (3): extract the (F1, F2) and (O1, O2) subset for subsequent analysis, and also truncate the time series at some feasible length. At this point, we have four groups of time series on R^2--the (F1, F2) signals from FTD patients, the (F1, F2) signals from healthy individuals, the (O1, O2) signals from AD patients, the (O1, O2) signals from healthy individuals. 
+  (4): compute a consensus series within each group using the R package "dtwclust"; then align the time series within the group to the consensus series using the R package "dtw". 
+The code for preprocessing is contained in "reproducibility_materials/real_data_analysis/preprocessing_code/"
+   
+   
+2. To reproduce Figure 6 in the main text, run the R script "main_Figure_6.R". It takes the input "3D_view.RData", which sets the viewing angle of the three-dimensional plots in Figure 6.
+
+
+3. To reproduce Figure 7 in the main text:
+   run the R script "main_Figure_7_CNFTD.R" to generate the upper left panel of Figure 7 (a); 
+   run the R script "main_Figure_7_FTD.R" to generate the upper right panel of Figure 7 (b);
+   run the R script "main_Figure_7_CNAD.R" to generate the lower left panel of Figure 7 (c);
+   run the R script "main_Figure_7_AD.R" to generate the lower right panel of Figure 7 (d).   
+   These R scripts take inputs "CNFTD_conds.RData", "FTD_conds.RData", "CNAD_conds.RData", "AD_conds.RData", which are the current values to be conditioned on. 
+
+
+```{r, eval=F}
+system("Rscript ./real_data_analysis/main_Figure_6.R")
+system("Rscript ./real_data_analysis/main_Figure_7_CNFTD.R")
+system("Rscript ./real_data_analysis/main_Figure_7_FTD.R")
+system("Rscript ./real_data_analysis/main_Figure_7_CNAD.R")
+system("Rscript ./real_data_analysis/main_Figure_7_AD.R")
+```
+
+
+
+
+
+
+
