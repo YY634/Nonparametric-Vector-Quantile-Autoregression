@@ -1,0 +1,149 @@
+---
+title: Nonparametric Vector Quantile Autoregression
+
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+## Overview
+We propose a fully nonparametric vector quantile autoregression (VQAR) framework based on center-outward quantiles from optimal transport. Our method constructs a predictive transport map pushing a spherical reference distribution forward to the conditional distribution of future observation. It yields closed, nested, and connected quantile regions with exact conditional coverage that fully characterize the predictive distribution without relying on parametric assumptions or specifying innovation densities. The proposed method addresses key limitations of classical vector autoregressive models--point prediction and linear transitions.
+
+**Note**: Please set the provided "reproducibility_materials" as the working directory. Under the working directory  (`reproducibility_materials`), there should be two sub-directories `simulations` and `real_data_analysis`. 
+Please also download the folder `preprocessed_data` from the GitHub page https://github.com/YY634/Nonparametric-Vector-Quantile-Autoregression/tree/main/real_data_analysis/preprocessed_data
+and place it under
+`reproducibility_materials/real_data_analysis/`
+These are the preprocessed EEG recordings (for real data analysis). Due to their large size, we cannot include these datasets directly in the reproducibility package. Instead, we have made them available through the GitHub page provided above.  
+
+The folder `reproducibility_materials` contains:
+1. The R codes to conduct simulations, which replicate the simulation results.
+2. The R codes for real data analysis via implementing nonparametric VQAR.
+3. Preprocessed real datasets that are ready to use, and the code to preprocess the original EEG recordings. 
+
+
+
+
+## R packages required
+The R scripts will employ these R packages: "ellipse", "MASS", "Matrix", "mgcv", "transport", "plotrix", "sn", "doParallel"
+
+
+
+
+## Computational cost
+Parallel computation is implemented in these R scripts. Each R script invokes 8-12 CPUs. 
+Computational cost: 
+The three simulation cases range from to 20 hours and range from 8 to 18 GBs (per CPU). 
+The real data analysis (four groups) range from 3 to 5 hours and ranges from 7 to 9 GBs (per CPU).
+
+
+
+
+## Data
+The original EEG dataset, entitled “A dataset of EEG recordings from Alzheimer’s disease, Frontotemporal Dementia, and Healthy subjects”, 
+is publicly available from OpenNeuro: https://openneuro.org/datasets/ds004504/versions/1.0.8
+For reproducibility, we provide the actual preprocessed, analysis-ready datasets used for the analysis in Section 4.2 through our GitHub repository: https://github.com/YY634/Nonparametric-Vector-Quantile-Autoregression/tree/main/real_data_analysis/preprocessed_data
+
+These are the datasets used to produce Figures 6 and 7 in the paper. Users can run the supplied code directly with these datasets and therefore do not need to download or preprocess the original EEG recordings. Please download the folder `preprocessed_data` from the GitHub page and place it under `reproducibility_materials/real_data_analysis/` so that the resulting path is `reproducibility_materials/real_data_analysis/preprocessed_data/`.
+
+
+
+
+## Simulation
+Enter the subdirectory `./simulations/main`:
+
+Running the R script `case1_figure3_results.R` will produce `case1_stationary.RData`, `case1_VAR_stationary.RData`, `case1_predictive.RData`, `case1_VAR_predictive.RData`.
+Running the R script `case1_figure3_plot.R` will visualize the above results of case1 and produce Figure 3 in our main text. 
+ 
+Running the R script `case2_figure4_results.R` will produce `case2_stationary.RData`, `case2_VAR_stationary.RData`, `case2_predictive.RData`, `case2_VAR_predictive.RData`.
+Running the R script `case2_figure4_plot.R` will visualize the above results of case2 and produce Figure 4 in our main text. 
+
+Running the R script `case3_figure5_results.R` will produce `case3_stationary.RData`, `case3_VAR_stationary.RData`, `case3_predictive.RData`, `case3_VAR_predictive.RData`.
+Running the R script `case3_figure5_plot.R` will visualize the above results of case3 and produce Figure 5 in our main text. 
+
+```{r, eval=F}
+system("Rscript ./simulations/main/case1_figure3_results.R")
+system("Rscript ./simulations/main/case1_figure3_plot.R")
+system("Rscript ./simulations/main/case2_figure4_results.R")
+system("Rscript ./simulations/main/case2_figure4_plot.R")
+system("Rscript ./simulations/main/case3_figure5_results.R")
+system("Rscript ./simulations/main/case3_figure5_plot.R")
+```
+
+
+Enter the subdirectory `./simulations/appendix/Figures/`:
+
+Running the R script `appendix_case1_figure3.R` will produce Figure 3 in our Appendix. 
+
+Running the R script `appendix_case2_figure6.R` will produce Figure 6 in our Appendix.
+
+Running the R script `appendix_case3_figure9.R` will produce Figure 9 in our Appendix.
+
+```{r, eval=F}
+system("Rscript ./simulations/appendix/Figures/appendix_case1_figure3.R")
+system("Rscript ./simulations/appendix/Figures/appendix_case2_figure6.R")
+system("Rscript ./simulations/appendix/Figures/appendix_case3_figure9.R")
+```
+
+
+
+
+Enter the subdirectory `./simulations/appendix/Tables/`:
+
+Running the R script `MSE.R` will produce Tables 1--3 in our Appendix.
+
+```{r, eval=F}
+system("Rscript ./simulations/appendix/Tables/MSE.R")
+```
+
+
+## Real data analysis
+Enter the subdirectory `reproducibility_materials/real_data_analysis/`:
+
+1. Download the analysis-ready datasets
+The actual preprocessed datasets used in Section 4.2 are available at: https://github.com/YY634/Nonparametric-Vector-Quantile-Autoregression/tree/main/real_data_analysis/preprocessed_data
+Download the folder `preprocessed_data` and place it under `reproducibility_materials/real_data_analysis/`.
+The resulting path should be `reproducibility_materials/real_data_analysis/preprocessed_data/`.
+
+For completeness and transparency, we also provide the code used to preprocess the original EEG recordings under `reproducibility_materials/real_data_analysis/preprocessing_code/`. The preprocessing code is not required for reproducing Figures 6 and 7.
+The preprocessing consists of: 
+converting the original .set files to .npy format then to .RData format;
+cleaning the data and extracting the EEG channel names and subject ID;
+extracting the (F1, F2) and (O1, O2) signals and truncating the time series to a computationally feasible length; 
+computing a consensus series within each group using a DTW-medoid procedure.
+
+The above preprocessing steps are not related to our method and take a long time. For readers' convenience, we directly provide the preprocessed datasets.
+
+   
+   
+2. To reproduce Figure 6 in the main text, run the R script `main_Figure_6.R`. It takes the input `3D_view.RData`, which sets the viewing angle of the three-dimensional plots in Figure 6; and `input.RData`, which contains the preprocessed (F1, F2) and (O1, O2) signals.
+
+
+3. To reproduce Figure 7 in the main text:
+   run the R script `main_Figure_7_CNFTD.R` to generate the upper left panel of Figure 7 (a); 
+   run the R script `main_Figure_7_FTD.R` to generate the upper right panel of Figure 7 (b);
+   run the R script `main_Figure_7_CNAD.R` to generate the lower left panel of Figure 7 (c);
+   run the R script `main_Figure_7_AD.R` to generate the lower right panel of Figure 7 (d).   
+   These R scripts take inputs `CNFTD_conds.RData`, `FTD_conds.RData`, `CNAD_conds.RData`, `AD_conds.RData` (the values to be conditioned on) and `input.RData` (the preprocessed (F1, F2) and (O1, O2) signals).  
+
+
+```{r, eval=F}
+system("Rscript ./real_data_analysis/main_Figure_6.R")
+system("Rscript ./real_data_analysis/main_Figure_7_CNFTD.R")
+system("Rscript ./real_data_analysis/main_Figure_7_FTD.R")
+system("Rscript ./real_data_analysis/main_Figure_7_CNAD.R")
+system("Rscript ./real_data_analysis/main_Figure_7_AD.R")
+```
+
+
+
+
+
+
+
