@@ -1,10 +1,13 @@
 #################### This R script will produce the upper left panel (a) in Figure 7 of the main text. #####################
 
+################################## set "reproducibility_materilas" as the working directory #########################################
+setwd("~/Desktop/reproducibility_materials/")
+
 library(MASS)
 library(transport)
 library(doParallel)
 
-load("./real_data_analysis/preprocessed_data/dataset_CNFTD.RData") 
+load("./real_data_analysis/preprocessed_data/input.RData");  rm(AD, CN_AD, FTD) 
 d <- 2
 
 ########## estimate the center-outward quantiles and medians of the stationary distribution (central panel)
@@ -146,7 +149,7 @@ Cond_Quantile_predict <- function(conds, h, qgridn, X, k_S, k_R, d=2){
 k_S <- 100; k_R <- 100; qgridn <- 120 
 X <- matrix(0, 0, d)
 for (i in 1:length(CN_FTD)){  tmp <- CN_FTD[[i]]; L <- min(dim(tmp)[1], 100000); tmp <- tmp[1:L,];  X <- rbind(X, tmp) }
-rm(tmp)
+rm(tmp, i)
 pairwisedist <- dist(X[1:20000,]);  h <- 0.2*sum(pairwisedist)/length(pairwisedist) 
 rm(pairwisedist)
 load("./real_data_analysis/preprocessed_data/CNFTD_conds.RData") 

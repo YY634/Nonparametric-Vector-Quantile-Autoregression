@@ -1,3 +1,5 @@
+################################## set "reproducibility_materilas" as the working directory #########################################
+setwd("~/Desktop/reproducibility_materials/")
 
 library(MASS)
 library(transport)
@@ -8,11 +10,12 @@ library(doParallel)
 # tims is a vector containing time points at which to compute the quantiles
 Cond_Quantile <- function(tims, conds, X, h, qgridn, k_S, k_R, d=2){ 
   T <- dim(X)[1]-1;  n <- k_S*k_R;  tn <- length(tims)
-  nc<-min(tn,detectCores());  registerDoParallel(nc)
+  nc <- min(tn,detectCores());  registerDoParallel(nc)
   #generate uniform spherical grid denoted as Ugrid
   sphere <- cbind( cos(2*pi*(0:(k_S-1))/k_S), sin(2*pi*(0:(k_S-1))/k_S) )
   Ugrid <- NULL;  for (i in 1:k_R){ Ugrid <- rbind(Ugrid, (i/(k_R+1)) * sphere) }
   rm(sphere)
+  
   quantiles <- foreach (t=1:tn) %dopar%{ 
     #compute the weights of the empirical conditional density
     cond <- conds[t,] 
@@ -20,17 +23,21 @@ Cond_Quantile <- function(tims, conds, X, h, qgridn, k_S, k_R, d=2){
     ord = sort(wgts, decreasing = TRUE, index.return=TRUE)$ix[1:n]
     Xtp <- X[ord+1,];  wgts <- wgts[ord]
     wgts <- wgts/sum(wgts)  
+    
     # compute the empirical OT plan
     a <- wpp(Ugrid, rep(1/n, n));  b <- wpp(Xtp, wgts)
     OTM <- transport(a, b, p = 2, method = "networkflow", fullreturn=FALSE, control = list(), threads=1)
     OTplan <- matrix(0, nrow = dim(Ugrid)[1], ncol = dim(Xtp)[1])
-    for (i in 1:nrow(OTM)) { OTplan[OTM$from[i], OTM$to[i]] <- OTM$mass[i] } 
+    for (i in 1:nrow(OTM)) {
+      OTplan[OTM$from[i], OTM$to[i]] <- OTM$mass[i]
+    } 
     rm(wgts, a, b, OTM, i)
     # construct the empirical quantile map (Ugrid[i,] maps to target[i,]) 
     targets <- matrix(0, n, d)
     for (i in 1:n){  targets[i,] <- n*OTplan[i,] %*% Xtp }
     ##############################################
-    ### computation of cyclically monotone interpolation
+    ### computation of cyclically monotone
+    ### interpolation
     ##############################################
     normas <- rep(0,n); for (i in 1:n){ normas[i]<-sqrt(sum(targets[i,]^2)) }; nsup <- max(normas) 
     xxx <- Ugrid/nsup;  yyy <- targets/nsup
@@ -58,6 +65,7 @@ Cond_Quantile <- function(tims, conds, X, h, qgridn, k_S, k_R, d=2){
     shortest.distances<-apply(dkv.mu,1,min)
     psi<-(-shortest.distances+shortest.distances[1])*nsup^2
     e0<-abs(mu.star)*nsup^2
+    
     xxx <- Ugrid;  yyy <- targets
     T.0 <- function(z){
       auxfun <- function(i){ return(sum(z*yyy[i,])-psi[i]) }
@@ -65,6 +73,7 @@ Cond_Quantile <- function(tims, conds, X, h, qgridn, k_S, k_R, d=2){
       indice <- which.max(scores)
       return(c(tims[t],yyy[indice,]))
     }
+    
     #evaluate the quantile contours at three quantile levels
     centr <- T.0(c(0,0))
     disc.sphere<-cbind(cos(2*pi*(0:qgridn)/qgridn),sin(2*pi*(0:qgridn)/qgridn))
@@ -73,6 +82,7 @@ Cond_Quantile <- function(tims, conds, X, h, qgridn, k_S, k_R, d=2){
     quant3 <- t(apply(0.8*disc.sphere,1,T.0))
     return( list(center=centr, quantile1=quant1, quantile2=quant2, quantile3=quant3) )
   }
+  
   medians <- NULL; quant_list <- list()
   for (a in 1:tn){
     medians <- rbind(medians, quantiles[[a]]$center)
@@ -82,46 +92,42 @@ Cond_Quantile <- function(tims, conds, X, h, qgridn, k_S, k_R, d=2){
 }
 
 
-load("./real_data_analysis/preprocessed_data/consensus_series.RData")
-d <- 2;  k_S <- 100;  k_R <- 100;  qgridn <- 120;  tims <- seq(1000, 12000, by=1000) 
+#### import the pre-processed EEG time series and the conditioning values (x_1, x_2, ..., x_m)
+load("./real_data_analysis/preprocessed_data/input.RData")
+load("./real_data_analysis/preprocessed_data/conds.RData")
 
-load("./real_data_analysis/preprocessed_data/dataset_CNFTD.RData") 
-conds <- dba_CNFTD[tims,];  X <- matrix(0, 0, d)
-for (i in 1:length(CN_FTD)){  tmp <- CN_FTD[[i]]; L <- min(dim(tmp)[1], 100000); tmp <- tmp[1:L,];  X <- rbind(X, tmp) }
-rm(CN_FTD, tmp, dba_CNFTD)
+d <- 2;  k_S <- 60;  k_R <- 60;  qgridn <- 120;  tims <- seq(1000, 12000, by=1000) 
+
+X <- matrix(0, 0, d)
+for (i in 1:length(CN_FTD)){  tmp <- CN_FTD[[i]];  X <- rbind(X, tmp) }
 pairwisedist <- dist(X[1:20000,]);  h <- 0.2*sum(pairwisedist)/length(pairwisedist) 
 rm(pairwisedist)
-upperleft <- Cond_Quantile(tims, conds, X, h, qgridn, k_S, k_R, d=2)
+upperleft <- Cond_Quantile(tims, conds_CNFTD, X, h, qgridn, k_S, k_R, d=2)
+rm(X, tmp, i)
 #save(upperleft, file = "./real_data_analysis/Figure6_CNFTD.RData")
 
-
-load("./real_data_analysis/preprocessed_data/dataset_FTD.RData") 
-conds <- dba_FTD[tims,];  X <- matrix(0, 0, d)
-for (i in 1:length(FTD)){  tmp <- FTD[[i]]; L <- min(dim(tmp)[1], 100000); tmp <- tmp[1:L,];  X <- rbind(X, tmp) }
-rm(FTD, tmp, dba_FTD)
+X <- matrix(0, 0, d)
+for (i in 1:length(CN_AD)){  tmp <- CN_AD[[i]];  X <- rbind(X, tmp) }
 pairwisedist <- dist(X[1:20000,]);  h <- 0.2*sum(pairwisedist)/length(pairwisedist) 
 rm(pairwisedist)
-upperright <- Cond_Quantile(tims, conds, X, h, qgridn, k_S, k_R, d=2)
-#save(upperright, file = "./real_data_analysis/Figure6_FTD.RData")
-
-
-load("./real_data_analysis/preprocessed_data/dataset_CNAD.RData") 
-conds <- dba_CNAD[tims,];  X <- matrix(0, 0, d)
-for (i in 1:length(CN_AD)){  tmp <- CN_AD[[i]]; L <- min(dim(tmp)[1], 100000); tmp <- tmp[1:L,];  X <- rbind(X, tmp) }
-rm(CN_AD, tmp, dba_CNAD)
-pairwisedist <- dist(X[1:20000,]);  h <- 0.2*sum(pairwisedist)/length(pairwisedist) 
-rm(pairwisedist)
-lowerleft <- Cond_Quantile(tims, conds, X, h, qgridn, k_S, k_R, d=2)
+lowerleft <- Cond_Quantile(tims, conds_CNAD, X, h, qgridn, k_S, k_R, d=2)
+rm(X, tmp, i)
 #save(lowerleft, file = "./real_data_analysis/Figure6_CNAD.RData")
 
-
-load("./real_data_analysis/preprocessed_data/dataset_AD.RData") 
-conds <- dba_AD[tims,];  X <- matrix(0, 0, d)
-for (i in 1:length(AD)){  tmp <- AD[[i]]; L <- min(dim(tmp)[1], 100000); tmp <- tmp[1:L,];  X <- rbind(X, tmp) }
-rm(AD, tmp, dba_AD)
+X <- matrix(0, 0, d)
+for (i in 1:length(FTD)){  tmp <- FTD[[i]];  X <- rbind(X, tmp) }
 pairwisedist <- dist(X[1:20000,]);  h <- 0.2*sum(pairwisedist)/length(pairwisedist) 
 rm(pairwisedist)
-lowerright <- Cond_Quantile(tims, conds, X, h, qgridn, k_S, k_R, d=2)
+upperright <- Cond_Quantile(tims, conds_FTD, X, h, qgridn, k_S, k_R, d=2)
+rm(X, tmp, i)
+#save(upperright, file = "./real_data_analysis/Figure6_FTD.RData")
+
+X <- matrix(0, 0, d)
+for (i in 1:length(AD)){  tmp <- AD[[i]];  X <- rbind(X, tmp) }
+pairwisedist <- dist(X[1:20000,]);  h <- 0.2*sum(pairwisedist)/length(pairwisedist) 
+rm(pairwisedist)
+lowerright <- Cond_Quantile(tims, conds_AD, X, h, qgridn, k_S, k_R, d=2)
+rm(X, tmp, i)
 #save(lowerright, file = "./real_data_analysis/Figure6_AD.RData")
 
 

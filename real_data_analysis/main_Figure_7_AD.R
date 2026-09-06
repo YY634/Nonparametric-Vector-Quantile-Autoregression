@@ -1,10 +1,13 @@
 #################### This R script will produce the lower right panel (d) in Figure 7 of the main text. #####################
 
+################################## set "reproducibility_materilas" as the working directory #########################################
+setwd("~/Desktop/reproducibility_materials/")
+
 library(MASS)
 library(transport)
 library(doParallel)
 
-load("./real_data_analysis/preprocessed_data/dataset_AD.RData") 
+load("./real_data_analysis/preprocessed_data/input.RData");   rm(CN_AD, FTD, CN_FTD) 
 d <- 2
 
 ########## estimate the center-outward quantiles and medians of the stationary distribution (central panel)
